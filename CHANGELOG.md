@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.10.51] - 2026-11-17
+
+### Skip extra paths in the shadow git
+
+Every write copies `/config` into `/config/ha_vibecode_git`. The exclusion list was fixed in code and only matched a few top-level directories, so nested folders such as `custom_components/foo/__pycache__` or `esphome/<device>/.git` were copied in full.
+
+`git_versioning_ignore` is a new optional add-on option. It is a comma-separated list of gitignore-style patterns, added on top of the built-in exclusions. The default is empty, which keeps the previous behaviour. Restart the add-on after changing it. Files that were already committed stay in the history; the next commit stops tracking them.
+
+Example: `**/__pycache__, **/.git, tts/, *.mp3`
+
+A pattern with no slash matches that name at any depth. A pattern with a slash is relative to `/config`. `**` matches any number of directories, including none. A trailing `/` matches directories only.
+
 ## [2.10.50] - 2026-10-22
 
 **Pair with MCP client 3.2.32.**

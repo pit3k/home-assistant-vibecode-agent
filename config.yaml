@@ -1,6 +1,6 @@
 # Home Assistant Add-on Configuration
 name: HA Vibecode Agent
-version: "2.10.50"
+version: "2.10.51"
 slug: home_assistant_cursor_agent
 description: "Enable Cursor, VS Code, Claude Code, or any MCP-enabled IDE to help you vibe-code and manage Home Assistant: create and debug automations, design dashboards, tweak themes, modify configs, and deploy changes using natural language"
 url: https://github.com/Coolver/home-assistant-cursor-agent
@@ -23,6 +23,7 @@ options:
   port: 8099
   log_level: info
   git_versioning_auto: true
+  git_versioning_ignore: ""
   max_backups: 30
   api_key: ""
   allow_sensitive_files: false
@@ -31,6 +32,7 @@ schema:
   port: int
   log_level: list(debug|info|warning|error)
   git_versioning_auto: bool
+  git_versioning_ignore: str?
   max_backups: int
   api_key: str?
   allow_sensitive_files: bool?

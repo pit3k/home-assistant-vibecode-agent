@@ -1,6 +1,6 @@
 # HA Vibecode Agent
 
-[![Version](https://img.shields.io/badge/version-2.10.50-blue.svg)](https://github.com/Coolver/home-assistant-vibecode-agent)
+[![Version](https://img.shields.io/badge/version-2.10.51-blue.svg)](https://github.com/Coolver/home-assistant-vibecode-agent)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![MCP Package](https://img.shields.io/npm/v/@coolver/home-assistant-mcp?label=MCP%20Package)](https://www.npmjs.com/package/@coolver/home-assistant-mcp)
 [![Landing Page](https://img.shields.io/badge/Landing%20Page-coolver.github.io-blueviolet)](https://coolver.github.io/home-assistant-vibecode-agent/)
@@ -30,15 +30,9 @@ https://github.com/user-attachments/assets/0df48019-06c0-48dd-82ad-c7fe0734ddb3
 **Full YouTube Demo:**
 - [How to control Home Assistant from Cursor](https://youtu.be/xocbWonWdoc)
 
-## What's new in 2.10.50
+## What's new in 2.10.51
 
-This one is mostly thanks to people who sent pull requests and wrote issues. Pair it with MCP client **3.2.32**.
-
-The setup page with the API key is only available through Home Assistant Ingress now, and the open CORS header is gone. Checkpoints save the edits as they happen, so a forgotten "end checkpoint" no longer throws the work away. `secrets.yaml`, key files, and Home Assistant's auth and config-entry storage are blocked from the file tools unless you turn that back on. Failed Home Assistant commands are reported as failures. Extra keys on an automation are kept. Backups and cache files are no longer copied into the shadow git.
-
-The assistant can also put an automation or script in a category, read the real Home Assistant Core log, get the data back from a service such as a weather forecast, install a HACS repository from the editor (that call used to fail every time), and remove one HACS card without uninstalling HACS. Dialogs that used to be UI-only, such as changing a switch into a light or configuring an integration, can be driven step by step.
-
-Thank you to [@CrazyCoder](https://github.com/CrazyCoder), [@arno82](https://github.com/arno82), [@Thijs226](https://github.com/Thijs226), [@telcopro](https://github.com/telcopro), [@olomouckyorel](https://github.com/olomouckyorel), [@eyal0](https://github.com/eyal0), [@GammelSami](https://github.com/GammelSami), [@gvillo](https://github.com/gvillo), and [@mnestrud](https://github.com/mnestrud). The longer note, with a line for each report, is in the changelog. That is the text Home Assistant shows as the add-on update info.
+The shadow git (`/config/ha_vibecode_git`) can skip extra paths. Set the optional add-on option `git_versioning_ignore` to a comma-separated list of gitignore-style patterns, for example `**/__pycache__, **/.git, tts/, *.mp3`. Those patterns are added to the built-in exclusions. Leave the option empty and the copy behaves exactly as before. Restart the add-on after changing it. The pattern rules are in [Leaving paths out of Git versioning](#leaving-paths-out-of-git-versioning).
 
 ---
 
@@ -368,6 +362,28 @@ For detailed contribution guidelines, see **[CONTRIBUTING.md](CONTRIBUTING.md)**
 
 ---
 
+## Leaving paths out of Git versioning
+
+The agent keeps its own history in `/config/ha_vibecode_git`, a copy of `/config`. Every change copies that tree and commits it. A built-in list already skips large or sensitive top-level items such as `.storage`, `.cloud`, `.cache`, `www`, `media`, `backups`, databases, logs, and `secrets.yaml`.
+
+That list does not match nested directories. `custom_components/foo/__pycache__`, `esphome/<device>/.git`, or a `tts/` folder can make every write copy hundreds of megabytes.
+
+`git_versioning_ignore` adds extra patterns on top of the built-in list. It is an optional string and defaults to empty, which keeps today's behaviour. In the add-on configuration it sits directly under `git_versioning_auto`.
+
+```
+**/__pycache__, **/.git, tts/, *.mp3
+```
+
+- A pattern with no `/` matches that name at any depth. `*.mp3` skips mp3 files everywhere.
+- A trailing `/` does not count as a slash, so the name still matches at any depth, and the pattern matches directories only. `tts/` skips directories named `tts`, including `voice/tts`, and does not skip a file named `tts`.
+- A pattern that contains a `/` is anchored at `/config`. `custom_components/my_integration/**` skips that folder, not another copy nested somewhere else. A leading `/` is only the anchor.
+- `**` matches any number of directories, including none. `**/__pycache__` skips that directory at the top of `/config` and anywhere underneath. `esphome/**/.git` skips a `.git` directory inside `esphome`.
+- Spaces around commas are ignored. Empty entries are ignored.
+
+Files that were already committed stay in the history. The next commit stops tracking them. Restart the add-on after changing the option.
+
+Standalone Docker uses the same value in `GIT_VERSIONING_IGNORE`.
+
 ## 🐛 Troubleshooting
 
 ### "spawn npx ENOENT" error (Claude Code / Cursor / VS Code / Other IDE Console)
@@ -417,6 +433,7 @@ Common issues:
 
 - Git versioning is always enabled in shadow repository (`/config/ha_vibecode_git`)
 - Check `git_versioning_auto` setting for auto/manual commit mode
+- Use `git_versioning_ignore` to skip extra files and directories (see [Leaving paths out of Git versioning](#leaving-paths-out-of-git-versioning))
 - View logs for Git errors
 - Ensure `/config` is writable
 

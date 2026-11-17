@@ -12,6 +12,7 @@ HA_TOKEN="${HA_TOKEN:?Error: HA_TOKEN is required (Long-Lived Access Token from 
 PORT="${PORT:-8099}"
 LOG_LEVEL="${LOG_LEVEL:-info}"
 GIT_VERSIONING_AUTO="${GIT_VERSIONING_AUTO:-true}"
+GIT_VERSIONING_IGNORE="${GIT_VERSIONING_IGNORE:-}"
 MAX_BACKUPS="${MAX_BACKUPS:-30}"
 ALLOW_SENSITIVE_FILES="${ALLOW_SENSITIVE_FILES:-false}"
 CONFIG_PATH="${CONFIG_PATH:-/config}"
@@ -20,6 +21,7 @@ CONFIG_PATH="${CONFIG_PATH:-/config}"
 export PORT
 export LOG_LEVEL
 export GIT_VERSIONING_AUTO
+export GIT_VERSIONING_IGNORE
 export MAX_BACKUPS
 export ALLOW_SENSITIVE_FILES
 export HA_URL
@@ -33,6 +35,7 @@ echo " HA URL:    ${HA_URL}"
 echo " Port:      ${PORT}"
 echo " Log level: ${LOG_LEVEL}"
 echo " Config:    ${CONFIG_PATH}"
+echo " Git ignore: ${GIT_VERSIONING_IGNORE:-<none>}"
 echo "==========================================="
 
 exec python3 -m uvicorn app.main:app --host 0.0.0.0 --port "${PORT}" --log-level "${LOG_LEVEL}"

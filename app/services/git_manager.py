@@ -10,6 +10,8 @@ import tempfile
 import shutil
 import subprocess
 
+from app.utils.pathignore import compile_ignore_rules, path_is_ignored
+
 logger = logging.getLogger('ha_cursor_agent')
 
 class GitManager:
@@ -28,7 +30,16 @@ class GitManager:
         # Git is always enabled in shadow repo, but commits only happen based on this setting
         self.git_versioning_auto = os.getenv('GIT_VERSIONING_AUTO', 'true').lower() == 'true'
         self.max_backups = int(os.getenv('MAX_BACKUPS', '30'))
-        logger.info(f"GitManager initialized: max_backups={self.max_backups}, auto={self.git_versioning_auto}")
+        # Extra gitignore-style patterns, comma-separated. Empty keeps the
+        # built-in exclusion list exactly as it is.
+        self.git_versioning_ignore = os.getenv('GIT_VERSIONING_IGNORE', '') or ''
+        self._user_ignore_rules = compile_ignore_rules(self.git_versioning_ignore)
+        logger.info(
+            "GitManager initialized: max_backups=%s, auto=%s, ignore=%r",
+            self.max_backups,
+            self.git_versioning_auto,
+            self.git_versioning_ignore,
+        )
         self.repo = None
         # While a checkpoint is open, skip the extra "backup before" commit.
         # The change itself is still committed. Forgetting ha_end_checkpoint
@@ -248,9 +259,15 @@ secrets.yaml
         - Exclude HA backup store, brand cache, DB, log and backup files
         - Exclude secrets and key/cert files
         - Exclude the agent's own shadow repo and any Git metadata
+        - Exclude git_versioning_ignore patterns, added on top of the built-ins
         """
         # Normalize to forward-slash style for matching
         rel_path = rel_path.replace(os.sep, '/')
+
+        # User patterns are exclusions only. An empty option matches nothing,
+        # so the built-in decisions below stay exactly as they are today.
+        if path_is_ignored(rel_path, is_dir, self._user_ignore_rules):
+            return False
 
         # Skip our own shadow repository and any .git directories
         parts = rel_path.split('/')
@@ -357,17 +374,21 @@ secrets.yaml
         # Remove files from shadow_root that are no longer present in /config
         # BUT preserve export/ directory (created by agent, not synced from /config)
         for root, dirs, files in os.walk(shadow_root):
-            # Never touch .git inside the shadow repo
-            if '.git' in dirs:
-                dirs.remove('.git')
-            
-            # Skip export/ directory - it's managed by agent, not synced from /config
-            if 'export' in dirs:
-                dirs.remove('export')
-
             rel_root = os.path.relpath(root, shadow_root)
             if rel_root == '.':
                 rel_root = ''
+
+            # Never touch the shadow repository's own .git. Nested directories
+            # that happen to be named .git are copied content (for example
+            # esphome/<device>/.git). When an ignore pattern or a deletion in
+            # /config drops them, their files have to be removed here so the
+            # next commit stops tracking them.
+            if rel_root == '' and '.git' in dirs:
+                dirs.remove('.git')
+
+            # Skip export/ directory - it's managed by agent, not synced from /config
+            if 'export' in dirs:
+                dirs.remove('export')
 
             # Skip export/ directory entirely
             if rel_root.startswith('export'):

@@ -4,15 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [2.10.51] - 2026-11-17
 
-### Skip extra paths in the shadow git
+### Skip extra directories in the shadow git
 
-Every write copies `/config` into `/config/ha_vibecode_git`. The exclusion list was fixed in code and only matched a few top-level directories, so nested folders such as `custom_components/foo/__pycache__` or `esphome/<device>/.git` were copied in full.
+Every write copies `/config` into `/config/ha_vibecode_git`. The built-in exclusion list only skips a fixed set of top-level directories and file types, so large folders such as `custom_components` or `esphome/.esphome` were still copied.
 
-`git_versioning_ignore` is a new optional add-on option. It is a comma-separated list of gitignore-style patterns, added on top of the built-in exclusions. The default is empty, which keeps the previous behaviour. Restart the add-on after changing it. Files that were already committed stay in the history; the next commit stops tracking them.
+`git_versioning_ignore` is a new optional add-on option. It is a comma-separated list of directory prefixes relative to `/config`, added on top of the built-in exclusions. The default is empty, which keeps the previous behaviour. Restart the add-on after changing it. A path is skipped when it equals a prefix or is inside it (`scripts` does not skip `scripts2`). Leading `./` or `/` and a trailing `/` are ignored. Files that were already committed stay in history; the next sync drops them from the shadow copy.
 
-Example: `**/__pycache__, **/.git, tts/, *.mp3`
-
-A pattern with no slash matches that name at any depth. A pattern with a slash is relative to `/config`. `**` matches any number of directories, including none. A trailing `/` matches directories only.
+Example: `custom_components, scripts, tts, esphome/.esphome, image`
 
 ## [2.10.50] - 2026-10-22
 

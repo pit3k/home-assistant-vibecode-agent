@@ -32,7 +32,7 @@ https://github.com/user-attachments/assets/0df48019-06c0-48dd-82ad-c7fe0734ddb3
 
 ## What's new in 2.10.51
 
-The shadow git (`/config/ha_vibecode_git`) can skip extra paths. Set the optional add-on option `git_versioning_ignore` to a comma-separated list of gitignore-style patterns, for example `**/__pycache__, **/.git, tts/, *.mp3`. Those patterns are added to the built-in exclusions. Leave the option empty and the copy behaves exactly as before. Restart the add-on after changing it. The pattern rules are in [Leaving paths out of Git versioning](#leaving-paths-out-of-git-versioning).
+The shadow git (`/config/ha_vibecode_git`) can skip extra directories. Set `git_versioning_ignore` to a comma-separated list of directory prefixes relative to `/config`, for example `custom_components, scripts, tts, esphome/.esphome, image`. These are added to the built-in exclusions. Leave the option empty and the copy behaves exactly as before. Restart the add-on after changing it. Details are in [Leaving directories out of Git versioning](#leaving-directories-out-of-git-versioning).
 
 ---
 
@@ -362,25 +362,19 @@ For detailed contribution guidelines, see **[CONTRIBUTING.md](CONTRIBUTING.md)**
 
 ---
 
-## Leaving paths out of Git versioning
+## Leaving directories out of Git versioning
 
 The agent keeps its own history in `/config/ha_vibecode_git`, a copy of `/config`. Every change copies that tree and commits it. A built-in list already skips large or sensitive top-level items such as `.storage`, `.cloud`, `.cache`, `www`, `media`, `backups`, databases, logs, and `secrets.yaml`.
 
-That list does not match nested directories. `custom_components/foo/__pycache__`, `esphome/<device>/.git`, or a `tts/` folder can make every write copy hundreds of megabytes.
-
-`git_versioning_ignore` adds extra patterns on top of the built-in list. It is an optional string and defaults to empty, which keeps today's behaviour. In the add-on configuration it sits directly under `git_versioning_auto`.
+`git_versioning_ignore` adds extra directories on top of that list. It is an optional string, directly under `git_versioning_auto`, and it defaults to empty. Empty keeps today's behaviour.
 
 ```
-**/__pycache__, **/.git, tts/, *.mp3
+custom_components, scripts, tts, esphome/.esphome, image
 ```
 
-- A pattern with no `/` matches that name at any depth. `*.mp3` skips mp3 files everywhere.
-- A trailing `/` does not count as a slash, so the name still matches at any depth, and the pattern matches directories only. `tts/` skips directories named `tts`, including `voice/tts`, and does not skip a file named `tts`.
-- A pattern that contains a `/` is anchored at `/config`. `custom_components/my_integration/**` skips that folder, not another copy nested somewhere else. A leading `/` is only the anchor.
-- `**` matches any number of directories, including none. `**/__pycache__` skips that directory at the top of `/config` and anywhere underneath. `esphome/**/.git` skips a `.git` directory inside `esphome`.
-- Spaces around commas are ignored. Empty entries are ignored.
+Each entry is a directory path relative to `/config`. A path is skipped when it is that prefix or is inside it, so `esphome/.esphome` skips that folder and not `esphome/device.yaml`. `scripts` does not skip `scripts2`. Spaces around commas are ignored. A leading `./` or `/` and a trailing `/` are ignored too.
 
-Files that were already committed stay in the history. The next commit stops tracking them. Restart the add-on after changing the option.
+Files already committed stay in history. The next sync drops them from the shadow copy, and the next commit stops tracking them. Restart the add-on after changing the option.
 
 Standalone Docker uses the same value in `GIT_VERSIONING_IGNORE`.
 
@@ -433,7 +427,7 @@ Common issues:
 
 - Git versioning is always enabled in shadow repository (`/config/ha_vibecode_git`)
 - Check `git_versioning_auto` setting for auto/manual commit mode
-- Use `git_versioning_ignore` to skip extra files and directories (see [Leaving paths out of Git versioning](#leaving-paths-out-of-git-versioning))
+- Use `git_versioning_ignore` to skip extra directories (see [Leaving directories out of Git versioning](#leaving-directories-out-of-git-versioning))
 - View logs for Git errors
 - Ensure `/config` is writable
 

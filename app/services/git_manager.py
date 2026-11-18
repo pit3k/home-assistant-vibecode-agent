@@ -13,7 +13,7 @@ import subprocess
 logger = logging.getLogger('ha_cursor_agent')
 
 
-def _ignore_prefixes(raw):
+def _parse_ignore_dirs(raw):
     """Comma-separated directory prefixes relative to /config.
 
     Whitespace is trimmed. A leading './' or '/' and a trailing '/' are
@@ -45,9 +45,9 @@ class GitManager:
         # Git is always enabled in shadow repo, but commits only happen based on this setting
         self.git_versioning_auto = os.getenv('GIT_VERSIONING_AUTO', 'true').lower() == 'true'
         self.max_backups = int(os.getenv('MAX_BACKUPS', '30'))
-        self._ignore_dirs = _ignore_prefixes(os.getenv('GIT_VERSIONING_IGNORE', ''))
+        self.ignore_dirs = _parse_ignore_dirs(os.getenv('IGNORE_DIRS', ''))
         logger.info(
-            f"GitManager initialized: max_backups={self.max_backups}, auto={self.git_versioning_auto}, ignore={self._ignore_dirs}"
+            f"GitManager initialized: max_backups={self.max_backups}, auto={self.git_versioning_auto}, ignore_dirs={self.ignore_dirs}"
         )
         self.repo = None
         # While a checkpoint is open, skip the extra "backup before" commit.
@@ -328,8 +328,8 @@ secrets.yaml
             if rel_path.startswith(prefix):
                 return False
 
-        # git_versioning_ignore: directory prefixes relative to /config.
-        for prefix in self._ignore_dirs:
+        # ignore_dirs: directory prefixes relative to /config.
+        for prefix in self.ignore_dirs:
             if rel_path == prefix or rel_path.startswith(prefix + '/'):
                 return False
 

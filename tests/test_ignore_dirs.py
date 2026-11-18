@@ -1,10 +1,10 @@
-"""git_versioning_ignore is a list of directory prefixes relative to /config."""
+"""ignore_dirs is a list of directory prefixes relative to /config."""
 
 
 def _manager(tmp_path, monkeypatch, ignore=""):
     monkeypatch.setenv("CONFIG_PATH", str(tmp_path))
     monkeypatch.setenv("GIT_VERSIONING_AUTO", "false")
-    monkeypatch.setenv("GIT_VERSIONING_IGNORE", ignore)
+    monkeypatch.setenv("IGNORE_DIRS", ignore)
     monkeypatch.setenv("MAX_BACKUPS", "30")
     from app.services.git_manager import GitManager
 
@@ -13,7 +13,7 @@ def _manager(tmp_path, monkeypatch, ignore=""):
 
 def test_empty_option_uses_builtin_exclusions_only(tmp_path, monkeypatch):
     manager = _manager(tmp_path, monkeypatch, " , ")
-    assert manager._ignore_dirs == ()
+    assert manager.ignore_dirs == ()
     assert manager._should_include_path("custom_components/foo/__init__.py", False)
     assert manager._should_include_path("esphome/.esphome/cache.json", False)
     assert manager._should_include_path("scripts/a.yaml", False)
@@ -28,7 +28,7 @@ def test_prefixes_exclude_top_level_and_nested_dirs(tmp_path, monkeypatch):
         monkeypatch,
         " ./custom_components/ , scripts , /tts/ , esphome/.esphome , image ",
     )
-    assert manager._ignore_dirs == (
+    assert manager.ignore_dirs == (
         "custom_components",
         "scripts",
         "tts",

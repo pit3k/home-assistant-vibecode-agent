@@ -4,11 +4,7 @@
 PORT=$(bashio::config 'port')
 LOG_LEVEL=$(bashio::config 'log_level')
 GIT_VERSIONING_AUTO=$(bashio::config 'git_versioning_auto')
-if bashio::config.exists 'git_versioning_ignore'; then
-    GIT_VERSIONING_IGNORE=$(bashio::config 'git_versioning_ignore')
-else
-    GIT_VERSIONING_IGNORE=""
-fi
+GIT_VERSIONING_IGNORE=$(bashio::config 'git_versioning_ignore')
 MAX_BACKUPS=$(bashio::config 'max_backups')
 if bashio::config.exists 'allow_sensitive_files'; then
     ALLOW_SENSITIVE_FILES=$(bashio::config 'allow_sensitive_files')

@@ -45,9 +45,7 @@ class GitManager:
         # Git is always enabled in shadow repo, but commits only happen based on this setting
         self.git_versioning_auto = os.getenv('GIT_VERSIONING_AUTO', 'true').lower() == 'true'
         self.max_backups = int(os.getenv('MAX_BACKUPS', '30'))
-        self._ignore_dirs = _ignore_prefixes(
-            os.getenv('GIT_VERSIONING_IGNORE', '')
-        )
+        self._ignore_dirs = _ignore_prefixes(os.getenv('GIT_VERSIONING_IGNORE', ''))
         logger.info(
             f"GitManager initialized: max_backups={self.max_backups}, auto={self.git_versioning_auto}, ignore={self._ignore_dirs}"
         )
@@ -388,6 +386,7 @@ secrets.yaml
             if rel_root == '.':
                 rel_root = ''
 
+            # Never touch .git inside the shadow repo
             if rel_root == '' and '.git' in dirs:
                 dirs.remove('.git')
 

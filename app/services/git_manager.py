@@ -45,13 +45,11 @@ class GitManager:
         # Git is always enabled in shadow repo, but commits only happen based on this setting
         self.git_versioning_auto = os.getenv('GIT_VERSIONING_AUTO', 'true').lower() == 'true'
         self.max_backups = int(os.getenv('MAX_BACKUPS', '30'))
-        # Directory prefixes from git_versioning_ignore, in addition to the
-        # built-in exclusions. When the list is empty, only those exclusions apply.
-        self._git_versioning_ignore_prefixes = _ignore_prefixes(
+        self._ignore_dirs = _ignore_prefixes(
             os.getenv('GIT_VERSIONING_IGNORE', '')
         )
         logger.info(
-            f"GitManager initialized: max_backups={self.max_backups}, auto={self.git_versioning_auto}, ignore={self._git_versioning_ignore_prefixes}"
+            f"GitManager initialized: max_backups={self.max_backups}, auto={self.git_versioning_auto}, ignore={self._ignore_dirs}"
         )
         self.repo = None
         # While a checkpoint is open, skip the extra "backup before" commit.
@@ -333,7 +331,7 @@ secrets.yaml
                 return False
 
         # git_versioning_ignore: directory prefixes relative to /config.
-        for prefix in self._git_versioning_ignore_prefixes:
+        for prefix in self._ignore_dirs:
             if rel_path == prefix or rel_path.startswith(prefix + '/'):
                 return False
 
@@ -390,27 +388,8 @@ secrets.yaml
             if rel_root == '.':
                 rel_root = ''
 
-            # Only the shadow repository's own .git stays. A nested .git is
-            # ordinary copied content: drop the whole directory when none of
-            # its files belong in this copy.
-            if '.git' in dirs:
-                if rel_root == '':
-                    dirs.remove('.git')
-                else:
-                    nested_rel = (rel_root + '/.git').replace(os.sep, '/')
-                    nested_prefix = nested_rel + '/'
-                    if not any(
-                        path == nested_rel or path.startswith(nested_prefix)
-                        for path in included_paths
-                    ):
-                        nested_abs = os.path.join(root, '.git')
-                        try:
-                            shutil.rmtree(nested_abs)
-                        except Exception as e:
-                            logger.warning(
-                                f"Failed to remove nested .git from shadow repo: {nested_rel}: {e}"
-                            )
-                        dirs.remove('.git')
+            if rel_root == '' and '.git' in dirs:
+                dirs.remove('.git')
 
             # Skip export/ directory - it's managed by agent, not synced from /config
             if 'export' in dirs:

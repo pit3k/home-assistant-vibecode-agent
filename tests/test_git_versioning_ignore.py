@@ -13,7 +13,7 @@ def _manager(tmp_path, monkeypatch, ignore=""):
 
 def test_empty_option_uses_builtin_exclusions_only(tmp_path, monkeypatch):
     manager = _manager(tmp_path, monkeypatch, " , ")
-    assert manager._git_versioning_ignore_prefixes == ()
+    assert manager._ignore_dirs == ()
     assert manager._should_include_path("custom_components/foo/__init__.py", False)
     assert manager._should_include_path("esphome/.esphome/cache.json", False)
     assert manager._should_include_path("scripts/a.yaml", False)
@@ -28,7 +28,7 @@ def test_prefixes_exclude_top_level_and_nested_dirs(tmp_path, monkeypatch):
         monkeypatch,
         " ./custom_components/ , scripts , /tts/ , esphome/.esphome , image ",
     )
-    assert manager._git_versioning_ignore_prefixes == (
+    assert manager._ignore_dirs == (
         "custom_components",
         "scripts",
         "tts",
@@ -96,7 +96,8 @@ def test_sync_removes_nested_git_under_ignored_prefix(tmp_path, monkeypatch):
 
     ignored = _manager(tmp_path, monkeypatch, "esphome/.esphome")
     ignored._sync_config_to_shadow()
-    assert not shadow_excluded.exists()
+    assert not (shadow_excluded / "HEAD").exists()
+    assert not (shadow_excluded / "config").exists()
     assert not (shadow / "esphome" / ".esphome" / "cache.json").exists()
     assert shadow_kept.is_file()
     assert (shadow / "esphome" / "device.yaml").is_file()

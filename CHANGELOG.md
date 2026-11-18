@@ -2,16 +2,6 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.10.51] - 2026-11-17
-
-### Skip extra directories in the shadow git
-
-Every write copies `/config` into `/config/ha_vibecode_git`. The built-in exclusion list only skips a fixed set of top-level directories and file types, so large folders such as `custom_components` or `esphome/.esphome` were still copied.
-
-`git_versioning_ignore` is a new optional add-on option. It is a comma-separated list of directory prefixes relative to `/config`, added on top of the built-in exclusions. The default is empty, which keeps the previous behaviour. Restart the add-on after changing it. A path is skipped when it equals a prefix or is inside it (`scripts` does not skip `scripts2`). Leading `./` or `/` and a trailing `/` are ignored. Files that were already committed stay in history; the next sync drops them from the shadow copy.
-
-Example: `custom_components, scripts, tts, esphome/.esphome, image`
-
 ## [2.10.50] - 2026-10-22
 
 **Pair with MCP client 3.2.32.**

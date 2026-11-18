@@ -31,6 +31,11 @@ class TestHealthEndpoint:
         data = response.json()
         assert data["status"] == "healthy"
 
+    def test_health_reports_ignore_option(self, monkeypatch):
+        monkeypatch.setenv("GIT_VERSIONING_IGNORE", "custom_components, tts")
+        data = client.get("/api/health").json()
+        assert data["git_versioning_ignore"] == "custom_components, tts"
+
 
 class TestAuthRequired:
     """Test that endpoints require authentication."""

@@ -35,7 +35,6 @@ echo " HA URL:    ${HA_URL}"
 echo " Port:      ${PORT}"
 echo " Log level: ${LOG_LEVEL}"
 echo " Config:    ${CONFIG_PATH}"
-echo " Git ignore: ${GIT_VERSIONING_IGNORE:-<none>}"
 echo "==========================================="
 
 exec python3 -m uvicorn app.main:app --host 0.0.0.0 --port "${PORT}" --log-level "${LOG_LEVEL}"

@@ -368,22 +368,6 @@ For detailed contribution guidelines, see **[CONTRIBUTING.md](CONTRIBUTING.md)**
 
 ---
 
-## Leaving directories out of Git versioning
-
-The agent keeps its history in `/config/ha_vibecode_git`, a copy of `/config`. Each change copies that tree and commits it. Built-in exclusions omit large or sensitive top-level items such as `.storage`, `.cloud`, `.cache`, `www`, `media`, `backups`, databases, logs, and `secrets.yaml`.
-
-`git_versioning_ignore` is an optional string directly under `git_versioning_auto`. It lists further directories to leave out of that copy. When empty, only the built-in exclusions apply.
-
-```
-custom_components, scripts, tts, esphome/.esphome, image
-```
-
-Entries are comma-separated directory paths relative to `/config`. Whitespace around each entry is removed, along with a leading `./` or `/` and a trailing `/`. A path is left out when it equals a prefix or begins with that prefix followed by `/`. `esphome/.esphome` leaves out that folder and the files inside it, and leaves `esphome/device.yaml` in the copy. `scripts` leaves out `scripts/a.yaml` and leaves `scripts2` in the copy.
-
-Commits that contain a path keep it. Once the path matches a prefix, the following sync removes it from the shadow copy and the following commit stops tracking it. Restart the add-on after changing the option.
-
-Standalone Docker reads the same list from `GIT_VERSIONING_IGNORE`.
-
 ## 🐛 Troubleshooting
 
 ### "spawn npx ENOENT" error (Claude Code / Cursor / VS Code / Other IDE Console)
@@ -433,7 +417,7 @@ Common issues:
 
 - Git versioning is always enabled in shadow repository (`/config/ha_vibecode_git`)
 - Check `git_versioning_auto` setting for auto/manual commit mode
-- Use `git_versioning_ignore` to skip extra directories (see [Leaving directories out of Git versioning](#leaving-directories-out-of-git-versioning))
+- Use `git_versioning_ignore` to leave directories out of the shadow repository (comma-separated paths relative to `/config`, e.g. `custom_components, esphome/.esphome`)
 - View logs for Git errors
 - Ensure `/config` is writable
 

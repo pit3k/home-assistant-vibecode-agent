@@ -370,19 +370,19 @@ For detailed contribution guidelines, see **[CONTRIBUTING.md](CONTRIBUTING.md)**
 
 ## Leaving directories out of Git versioning
 
-The agent keeps its own history in `/config/ha_vibecode_git`, a copy of `/config`. Every change copies that tree and commits it. A built-in list already skips large or sensitive top-level items such as `.storage`, `.cloud`, `.cache`, `www`, `media`, `backups`, databases, logs, and `secrets.yaml`.
+The agent keeps its history in `/config/ha_vibecode_git`, a copy of `/config`. Each change copies that tree and commits it. Built-in exclusions omit large or sensitive top-level items such as `.storage`, `.cloud`, `.cache`, `www`, `media`, `backups`, databases, logs, and `secrets.yaml`.
 
-`git_versioning_ignore` adds extra directories on top of that list. It is an optional string, directly under `git_versioning_auto`, and it defaults to empty. Empty keeps today's behaviour.
+`git_versioning_ignore` is an optional string directly under `git_versioning_auto`. It lists further directories to leave out of that copy. When empty, only the built-in exclusions apply.
 
 ```
 custom_components, scripts, tts, esphome/.esphome, image
 ```
 
-Each entry is a directory path relative to `/config`. A path is skipped when it is that prefix or is inside it, so `esphome/.esphome` skips that folder and not `esphome/device.yaml`. `scripts` does not skip `scripts2`. Spaces around commas are ignored. A leading `./` or `/` and a trailing `/` are ignored too.
+Entries are comma-separated directory paths relative to `/config`. Whitespace around each entry is removed, along with a leading `./` or `/` and a trailing `/`. A path is left out when it equals a prefix or begins with that prefix followed by `/`. `esphome/.esphome` leaves out that folder and the files inside it, and leaves `esphome/device.yaml` in the copy. `scripts` leaves out `scripts/a.yaml` and leaves `scripts2` in the copy.
 
-Files already committed stay in history. The next sync drops them from the shadow copy, and the next commit stops tracking them. Restart the add-on after changing the option.
+Commits that contain a path keep it. Once the path matches a prefix, the following sync removes it from the shadow copy and the following commit stops tracking it. Restart the add-on after changing the option.
 
-Standalone Docker uses the same value in `GIT_VERSIONING_IGNORE`.
+Standalone Docker reads the same list from `GIT_VERSIONING_IGNORE`.
 
 ## 🐛 Troubleshooting
 

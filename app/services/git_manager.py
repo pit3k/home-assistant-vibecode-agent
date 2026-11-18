@@ -45,8 +45,8 @@ class GitManager:
         # Git is always enabled in shadow repo, but commits only happen based on this setting
         self.git_versioning_auto = os.getenv('GIT_VERSIONING_AUTO', 'true').lower() == 'true'
         self.max_backups = int(os.getenv('MAX_BACKUPS', '30'))
-        # Extra directory prefixes, added to the built-in exclusions.
-        # Empty keeps the built-in list exactly as it is.
+        # Directory prefixes from git_versioning_ignore, in addition to the
+        # built-in exclusions. When the list is empty, only those exclusions apply.
         self._git_versioning_ignore_prefixes = _ignore_prefixes(
             os.getenv('GIT_VERSIONING_IGNORE', '')
         )

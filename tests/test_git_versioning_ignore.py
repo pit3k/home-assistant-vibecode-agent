@@ -11,7 +11,7 @@ def _manager(tmp_path, monkeypatch, ignore=""):
     return GitManager()
 
 
-def test_empty_option_is_unchanged(tmp_path, monkeypatch):
+def test_empty_option_uses_builtin_exclusions_only(tmp_path, monkeypatch):
     manager = _manager(tmp_path, monkeypatch, " , ")
     assert manager._git_versioning_ignore_prefixes == ()
     assert manager._should_include_path("custom_components/foo/__init__.py", False)

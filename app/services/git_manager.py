@@ -386,17 +386,35 @@ secrets.yaml
         # Remove files from shadow_root that are no longer present in /config
         # BUT preserve export/ directory (created by agent, not synced from /config)
         for root, dirs, files in os.walk(shadow_root):
-            # Never touch .git inside the shadow repo
-            if '.git' in dirs:
-                dirs.remove('.git')
-            
-            # Skip export/ directory - it's managed by agent, not synced from /config
-            if 'export' in dirs:
-                dirs.remove('export')
-
             rel_root = os.path.relpath(root, shadow_root)
             if rel_root == '.':
                 rel_root = ''
+
+            # Only the shadow repository's own .git stays. A nested .git is
+            # ordinary copied content: drop the whole directory when none of
+            # its files belong in this copy.
+            if '.git' in dirs:
+                if rel_root == '':
+                    dirs.remove('.git')
+                else:
+                    nested_rel = (rel_root + '/.git').replace(os.sep, '/')
+                    nested_prefix = nested_rel + '/'
+                    if not any(
+                        path == nested_rel or path.startswith(nested_prefix)
+                        for path in included_paths
+                    ):
+                        nested_abs = os.path.join(root, '.git')
+                        try:
+                            shutil.rmtree(nested_abs)
+                        except Exception as e:
+                            logger.warning(
+                                f"Failed to remove nested .git from shadow repo: {nested_rel}: {e}"
+                            )
+                        dirs.remove('.git')
+
+            # Skip export/ directory - it's managed by agent, not synced from /config
+            if 'export' in dirs:
+                dirs.remove('export')
 
             # Skip export/ directory entirely
             if rel_root.startswith('export'):

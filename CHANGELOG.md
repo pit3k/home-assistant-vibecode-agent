@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.10.51] - 2026-11-18
+
+`git_versioning_ignore` lists directory prefixes relative to `/config` that `/config/ha_vibecode_git` leaves out of its copy, in addition to the built-in exclusions. When the option is empty, only the built-in exclusions apply.
+
+Example: `custom_components, scripts, tts, esphome/.esphome, image`
+
+A path is left out when it equals a prefix or begins with that prefix followed by `/`. A nested `.git` directory under an excluded path is removed from the shadow copy on sync. The shadow repository's own `.git` stays in place.
+
 ## [2.10.50] - 2026-10-22
 
 **Pair with MCP client 3.2.32.**

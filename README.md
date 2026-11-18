@@ -1,6 +1,6 @@
 # HA Vibecode Agent
 
-[![Version](https://img.shields.io/badge/version-2.10.50-blue.svg)](https://github.com/Coolver/home-assistant-vibecode-agent)
+[![Version](https://img.shields.io/badge/version-2.10.51-blue.svg)](https://github.com/Coolver/home-assistant-vibecode-agent)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![MCP Package](https://img.shields.io/npm/v/@coolver/home-assistant-mcp?label=MCP%20Package)](https://www.npmjs.com/package/@coolver/home-assistant-mcp)
 [![Landing Page](https://img.shields.io/badge/Landing%20Page-coolver.github.io-blueviolet)](https://coolver.github.io/home-assistant-vibecode-agent/)
@@ -29,6 +29,10 @@ https://github.com/user-attachments/assets/0df48019-06c0-48dd-82ad-c7fe0734ddb3
 
 **Full YouTube Demo:**
 - [How to control Home Assistant from Cursor](https://youtu.be/xocbWonWdoc)
+
+## What's new in 2.10.51
+
+`git_versioning_ignore` lists directory prefixes relative to `/config` that the shadow git leaves out of its copy. The setting is described under Troubleshooting. A nested `.git` directory under an excluded path is removed from the shadow copy on sync. The shadow repository's own `.git` stays in place.
 
 ## What's new in 2.10.50
 

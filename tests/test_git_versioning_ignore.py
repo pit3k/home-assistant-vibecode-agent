@@ -71,3 +71,35 @@ def test_sync_skips_prefixed_directories(tmp_path, monkeypatch):
     assert (shadow / "scripts2" / "a.yaml").is_file()
     assert (shadow / "configuration.yaml").is_file()
     assert (tmp_path / "custom_components" / "foo" / "__init__.py").is_file()
+
+
+def test_sync_removes_nested_git_under_ignored_prefix(tmp_path, monkeypatch):
+    excluded = tmp_path / "esphome" / ".esphome" / "external_components" / "widget" / ".git"
+    excluded.mkdir(parents=True)
+    (excluded / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+    (excluded / "config").write_text("[core]\n", encoding="utf-8")
+    (tmp_path / "esphome" / ".esphome" / "cache.json").write_text("{}\n", encoding="utf-8")
+    kept = tmp_path / "esphome" / "widget" / ".git"
+    kept.mkdir(parents=True)
+    (kept / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+    (tmp_path / "esphome" / "device.yaml").write_text("esphome:\n", encoding="utf-8")
+    (tmp_path / "configuration.yaml").write_text("homeassistant:\n", encoding="utf-8")
+
+    plain = _manager(tmp_path, monkeypatch, "")
+    plain._sync_config_to_shadow()
+    shadow = tmp_path / "ha_vibecode_git"
+    shadow_excluded = shadow / "esphome" / ".esphome" / "external_components" / "widget" / ".git"
+    shadow_kept = shadow / "esphome" / "widget" / ".git" / "HEAD"
+    assert (shadow_excluded / "HEAD").is_file()
+    assert shadow_kept.is_file()
+    assert (shadow / ".git" / "HEAD").is_file()
+
+    ignored = _manager(tmp_path, monkeypatch, "esphome/.esphome")
+    ignored._sync_config_to_shadow()
+    assert not shadow_excluded.exists()
+    assert not (shadow / "esphome" / ".esphome" / "cache.json").exists()
+    assert shadow_kept.is_file()
+    assert (shadow / "esphome" / "device.yaml").is_file()
+    assert (shadow / ".git" / "HEAD").is_file()
+    assert ignored.repo.git.rev_parse("--is-inside-work-tree").strip() == "true"
+    assert (excluded / "HEAD").is_file()
